@@ -80,7 +80,7 @@ def close(session_attributes, fulfillment_state, message):
     return response
 
 def validate_data(age, investment_amount):
-    if 0 < parse_int(age) < 65:
+    if 0 > parse_int(age) or parse_int(age) > 65:
         return build_validation_result(
             False,
             "age",
@@ -88,15 +88,24 @@ def validate_data(age, investment_amount):
         )
 
     #Validating the dollar amound
-    if parse_int(investment_amount) >= 5000:
+    if parse_int(investment_amount) < 5000:
         return build_validation_result(
             False,
             "investmentAmount",
             "The minimum valid investment is $5000."
             )
     #If both results are valid
-    return build_validation_result(True,True)
-    
+    return build_validation_result(True, None, None)
+
+#Defining the different risk tolerances and the replies 
+def recommend(risk_level):
+    tolerance = {
+        "none" : "100% bonds (AGG), 0% equities (SPY)",
+        "low" : "60% bonds (AGG), 40% equities (SPY)",
+        "medium" : "40% bonds (AGG), 60% equities (SPY)",
+        "high" : "20% bonds (AGG), 80% equities (SPY)"
+    }
+    return tolerance[risk_level]
     
 ### Intents Handlers ###
 def recommend_portfolio(intent_request):
@@ -110,6 +119,9 @@ def recommend_portfolio(intent_request):
     risk_level = get_slots(intent_request)["riskLevel"]
     source = intent_request["invocationSource"]
 
+    # Pulls the invocation source.
+    source = intent_request["invocationSource"]
+    
     if source == "DialogCodeHook":
         #Getting the slots
         slots = get_slots(intent_request)
@@ -132,57 +144,20 @@ def recommend_portfolio(intent_request):
         
         return delegate(output_session_attributes, get_slots(intent_request))
     
-    #Risk level = None
-    if risk_level == "None":  
-        return close(
-            intent_request["sessionAttributes"],
-            "Fulfilled",
-            {
-                "contentType": "PlainText",
-                "content": """Thank you for using our service;
-                according to your data, we recommend a portfolio of 100% bonds (AGG), 0% equities (SPY) 
-                """,
-            },
-        )
-        
-    #Risk level = Low
-    if risk_level == "Low":
-        return close(
-            intent_request["sessionAttributes"],
-            "Fulfilled",
-            {
-                "contentType": "PlainText",
-                "content": """Thank you for using our service;
-                according to your data, we recommend a portfolio of 60% bonds (AGG), 40% equities (SPY) 
-                """,
-            },
-        )
-        
-    #Risk level = Medium
-    if risk_level == "Medium":
-        return close(
-            intent_request["sessionAttributes"],
-            "Fulfilled",
-            {
-                "contentType": "PlainText",
-                "content": """Thank you for using our service;
-                according to your data, we recommend a portfolio of 40% bonds (AGG), 60% equities (SPY) 
-                """,
-            },
-        )
-        
-    #Risk level = High
-    if risk_level == "High":
-        return close(
-            intent_request["sessionAttributes"],
-            "Fulfilled",
-            {
-                "contentType": "PlainText",
-                "content": """Thank you for using our service;
-                according to your data, we recommend a portfolio of 20% bonds (AGG), 80% equities (SPY) 
-                """,
-            },
-        )
+    portfolio_composition = recommend(risk_level)
+    
+    return close(
+        intent_request["sessionAttributes"],
+        "Fulfilled",
+        {
+            "contentType": "PlainText",
+            "content": """Thank you for using our serivce (),
+            according to your investment amount and risk tolerance, you would like to invest {} ; based on this data, our recommendation is {}
+            """.format(
+                first_name, investment_amount, portfolio_composition
+            ),
+        },
+    )     
 
 
 ### Intents Dispatcher ###
