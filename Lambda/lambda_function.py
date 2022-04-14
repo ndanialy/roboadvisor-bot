@@ -79,8 +79,8 @@ def close(session_attributes, fulfillment_state, message):
 
     return response
 
-def validate_data(age, investment_amount):
-    if 0 > parse_int(age) or parse_int(age) > 65:
+def validate_data(age, investment_amount, intent_request):
+    if parse_int(age) < 0 or parse_int(age) > 65:
         return build_validation_result(
             False,
             "age",
@@ -100,10 +100,10 @@ def validate_data(age, investment_amount):
 #Defining the different risk tolerances and the replies 
 def recommend(risk_level):
     tolerance = {
-        "none" : "100% bonds (AGG), 0% equities (SPY)",
-        "low" : "60% bonds (AGG), 40% equities (SPY)",
-        "medium" : "40% bonds (AGG), 60% equities (SPY)",
-        "high" : "20% bonds (AGG), 80% equities (SPY)"
+        "None" : "100% bonds (AGG), 0% equities (SPY)",
+        "Low" : "60% bonds (AGG), 40% equities (SPY)",
+        "Medium" : "40% bonds (AGG), 60% equities (SPY)",
+        "High" : "20% bonds (AGG), 80% equities (SPY)"
     }
     return tolerance[risk_level]
     
@@ -126,7 +126,7 @@ def recommend_portfolio(intent_request):
         #Getting the slots
         slots = get_slots(intent_request)
         
-        validation_result = validate_data(age,investment_amount)
+        validation_result = validate_data(age,investment_amount, intent_request)
       
         if not validation_result["isValid"]:
             slots[validation_result["violatedSlot"]]=None
@@ -151,7 +151,7 @@ def recommend_portfolio(intent_request):
         "Fulfilled",
         {
             "contentType": "PlainText",
-            "content": """Thank you for using our serivce (),
+            "content": """Thank you for using our serivce {},
             according to your investment amount and risk tolerance, you would like to invest {} ; based on this data, our recommendation is {}
             """.format(
                 first_name, investment_amount, portfolio_composition
