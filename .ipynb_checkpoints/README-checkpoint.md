@@ -24,6 +24,7 @@ None, you just need to use the bot
 
 The bot asks the user some questions before using the data provided to recommend a portfolio composition for the users retirement.
 
+![Dialogue](https://user-images.githubusercontent.com/96391748/163305934-ba95ee84-598f-482d-9d3f-19f7c2093043.PNG)
 
 ---
 
